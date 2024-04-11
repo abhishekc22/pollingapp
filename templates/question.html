@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Poll</title>
+    <style>
+        /* Style for the modal content */
+        .modal-content {
+            background-color: #fefefe;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Style for the close button */
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-modal:hover,
+        .close-modal:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Style for the form labels */
+        label {
+            font-weight: bold;
+        }
+
+        /* Style for the form inputs */
+        input[type="text"],
+        input[type="datetime-local"],
+        input[type="submit"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div id="createPollModal" class="option-modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <form id="createPollForm" method="post" action="{% url 'create_poll' %}">
+            {% csrf_token %}
+            <label for="question">Question:</label><br>
+            <input type="text" id="question" name="question" required><br>
+            <label for="deadline">Deadline:</label><br>
+            <input type="datetime-local" id="deadline" name="deadline"><br>
+            <input type="submit" value="Create Poll">
+        </form>
+    </div>
+</div>
+</body>
+</html>

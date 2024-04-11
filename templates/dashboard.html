@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polling App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Adjust the minimum width and number of columns as needed */
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .poll {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .poll h3 {
+            margin-bottom: 10px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .options li {
+            margin-bottom: 5px;
+        }
+
+        /* Style for the create poll button */
+        .create-poll-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: block; /* Changed from inline-block to block */
+            width: fit-content; /* Added to adjust button width to content */
+            margin: 20px auto; /* Center align the button */
+        }
+
+        /* Style for the vote button */
+        button[type="submit"] {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: block; /* Changed from inline-block to block */
+            width: fit-content; /* Added to adjust button width to content */
+            margin: 10px auto; /* Center align the button */
+        }
+
+        .error-message {
+            color: #ff0000;
+            margin-top: 10px;
+        }
+        .results li {
+            color: #333; /* Adjust the color as needed */
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            padding: 6px 12px;
+            margin: 0 3px;
+            border: 1px solid #007bff;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+
+        .pagination .current {
+            background-color: #007bff;
+            color: #fff;
+            border: 1px solid #007bff;
+            padding: 6px 12px;
+            margin: 0 3px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    
+<a href="{% url 'create_poll' %}" class="create-poll-button">Create Poll</a>
+<span><a href="{% url 'logout' %}" class="create-poll-button">Logout</a></span>
+<div class="container">
+    {% for poll in page_obj %}
+    <div class="poll">
+        <h3>{{ poll.question }} ?</h3>
+        <h6>Deadline: {{ poll.deadline }}</h6>
+        {% if poll.has_voted %}
+        <ul class="results">
+            {% for choice in poll.choice_set.all %}
+            <li>
+                {{ choice.text }} - 
+                {{ choice.vote_set.count }} votes ({{ choice.percentage }}%)
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <form method="post" data-poll-id="{{ poll.id }}" class="poll-form">
+            {% csrf_token %}
+            <ul class="options">
+                {% for choice in poll.choice_set.all %}
+                <li>
+                    <label>
+                        <input type="radio" name="choice" value="{{ choice.id }}">
+                        {{ choice.text }}
+                    </label>
+                </li>
+                {% endfor %}
+            </ul>
+            <button type="submit" class="vote-button">Vote</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+</div>
+
+<p class="error-message" style="display: none;"></p>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.poll-form').submit(function(event) {
+            event.preventDefault();
+            var form = $(this);
+            var pollId = form.data('poll-id');
+            var formData = form.serialize();
+            $.ajax({
+                type: 'POST',
+                url: '/polls/' + pollId + '/vote/',  
+                data: formData,
+                success: function(data) {
+                    form.hide();
+                    $('.error-message').hide();
+                    $('.poll[data-poll-id="' + pollId + '"]').find('.results').show();
+                    alert("Vote submitted successfully!");
+                },
+                error: function(xhr, status, error) {
+                    
+                    alert("You have already voted for this poll!");
+                    $('.error-message').text("You have already voted for this poll.").show();
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
